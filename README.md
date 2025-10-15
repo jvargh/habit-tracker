@@ -2,7 +2,7 @@
 
 A modern, responsive habit tracking application built with Next.js 15, TypeScript, and Tailwind CSS. Track your daily habits, visualize progress, and build better routines with an intuitive interface.
 
-![Demo](habit-tracker-demo.gif)
+**Developed using [GitHub SpecKit](https://github.com/github/spec-kit)** - An AI-powered development framework that transforms natural language specifications into fully functional applications through systematic implementation phases.
 
 ## ✨ Features
 
@@ -58,6 +58,29 @@ That's it! The app will load with sample data so you can start exploring immedia
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run lint` | Check code quality with ESLint |
 | `npm run type-check` | Run TypeScript type checking |
+
+## 🔧 Built with SpecKit
+
+This project was developed using **[GitHub SpecKit](https://github.com/github/spec-kit)**, an innovative AI-powered development framework that revolutionizes how applications are built from specifications.
+
+### What is SpecKit?
+SpecKit transforms natural language requirements and specifications into fully functional, production-ready applications through a systematic, phase-based approach. Instead of writing code from scratch, developers can describe what they want to build, and SpecKit handles the implementation details.
+
+### Development Process
+This habit tracker was built through SpecKit's structured phases:
+- **📋 Specification Analysis**: Breaking down requirements into actionable tasks
+- **🏗️ Architecture Planning**: Designing component structure and data flow
+- **⚡ Rapid Implementation**: Generating components, tests, and functionality
+- **🧪 Quality Assurance**: Comprehensive testing and validation
+- **✨ Feature Integration**: Seamless integration of complex features like edit modals
+
+### Why SpecKit?
+- **Speed**: Rapid development from concept to working application
+- **Quality**: Built-in best practices and comprehensive testing
+- **Consistency**: Standardized code structure and patterns
+- **Maintainability**: Clean, well-documented, and extensible codebase
+
+The result is this fully-featured habit tracker with 43/43 passing tests, complete UI functionality, and production-ready code - all generated from high-level specifications.
 
 ## 🎮 How to Use
 
@@ -210,4 +233,6 @@ This project is licensed under the MIT License.
 
 **Happy habit tracking!** 🎯✨
 
-Built with ❤️ using Next.js, TypeScript, and Tailwind CSS.
+Built with ❤️ using [GitHub SpecKit](https://github.com/github/spec-kit), Next.js, TypeScript, and Tailwind CSS.
+
+*Demonstrating the power of AI-assisted development through systematic specification-to-code transformation.*
