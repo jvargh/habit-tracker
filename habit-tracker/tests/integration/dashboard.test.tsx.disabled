@@ -1,0 +1,434 @@
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { Dashboard } from '@/components/dashboard/Dashboard';
+import { storageService } from '@/lib/storage';
+import { sampleHabits, generateSampleEntries } from '@/lib/data/sample-data';
+
+// Mock the storage service
+jest.mock('@/lib/storage');
+const mockStorageService = storageService as jest.Mocked<typeof storageService>;
+
+// Mock next/navigation
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    refresh: jest.fn(),
+  }),
+  useSearchParams: () => ({
+    get: jest.fn(),
+  }),
+}));
+
+describe('Dashboard Integration Tests', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    
+    // Setup default storage service mocks
+    mockStorageService.prototype.getHabits = jest.fn();
+    mockStorageService.prototype.getHabitEntries = jest.fn();
+    mockStorageService.prototype.getAchievements = jest.fn();
+    mockStorageService.prototype.initialize = jest.fn().mockResolvedValue(undefined);
+  });
+
+  describe('Dashboard Loading', () => {
+    it('loads and displays habits on dashboard initialization', async () => {
+      // Arrange
+      const mockHabits = sampleHabits.slice(0, 3); // First 3 sample habits
+      const mockEntries = generateSampleEntries(mockHabits);
+      
+      mockStorageService.prototype.getHabits.mockResolvedValue(mockHabits);
+      mockStorageService.prototype.getHabitEntries.mockResolvedValue(mockEntries);
+      mockStorageService.prototype.getAchievements.mockResolvedValue([]);
+
+      // Act
+      render(<Dashboard />);
+
+      // Assert
+      // Should show loading initially
+      expect(screen.getByTestId('dashboard-loading')).toBeInTheDocument();
+
+      // Wait for data to load
+      await waitFor(() => {
+        expect(screen.queryByTestId('dashboard-loading')).not.toBeInTheDocument();
+      });
+
+      // Should display habits
+      expect(screen.getByTestId('habit-list')).toBeInTheDocument();
+      mockHabits.forEach(habit => {
+        expect(screen.getByText(habit.name)).toBeInTheDocument();
+      });
+    });
+
+    it('shows empty state when no habits exist', async () => {
+      // Arrange
+      mockStorageService.prototype.getHabits.mockResolvedValue([]);
+      mockStorageService.prototype.getHabitEntries.mockResolvedValue([]);
+      mockStorageService.prototype.getAchievements.mockResolvedValue([]);
+
+      // Act
+      render(<Dashboard />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('empty-dashboard')).toBeInTheDocument();
+        expect(screen.getByText(/no habits yet/i)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /create.*habit/i })).toBeInTheDocument();
+      });
+    });
+
+    it('handles loading errors gracefully', async () => {
+      // Arrange
+      const errorMessage = 'Failed to load habits';
+      mockStorageService.prototype.getHabits.mockRejectedValue(new Error(errorMessage));
+
+      // Act
+      render(<Dashboard />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('dashboard-error')).toBeInTheDocument();
+        expect(screen.getByText(/error loading dashboard/i)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
+      });
+    });
+
+    it('retries loading when retry button is clicked', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      mockStorageService.prototype.getHabits
+        .mockRejectedValueOnce(new Error('Network error'))
+        .mockResolvedValueOnce(sampleHabits.slice(0, 2));
+      mockStorageService.prototype.getHabitEntries.mockResolvedValue([]);
+      mockStorageService.prototype.getAchievements.mockResolvedValue([]);
+
+      // Act
+      render(<Dashboard />);
+
+      // Wait for error state
+      await waitFor(() => {
+        expect(screen.getByTestId('dashboard-error')).toBeInTheDocument();
+      });
+
+      // Click retry
+      const retryButton = screen.getByRole('button', { name: /retry/i });
+      await user.click(retryButton);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.queryByTestId('dashboard-error')).not.toBeInTheDocument();
+        expect(screen.getByTestId('habit-list')).toBeInTheDocument();
+      });
+
+      expect(mockStorageService.prototype.getHabits).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('Dashboard Statistics', () => {
+    it('calculates and displays overall progress statistics', async () => {
+      // Arrange
+      const mockHabits = sampleHabits.slice(0, 4);
+      const mockEntries = generateSampleEntries(mockHabits);
+      
+      mockStorageService.prototype.getHabits.mockResolvedValue(mockHabits);
+      mockStorageService.prototype.getHabitEntries.mockResolvedValue(mockEntries);
+      mockStorageService.prototype.getAchievements.mockResolvedValue([]);
+
+      // Act
+      render(<Dashboard />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('dashboard-stats')).toBeInTheDocument();
+        
+        // Should show total habits
+        expect(screen.getByText(`${mockHabits.length}`)).toBeInTheDocument();
+        expect(screen.getByText(/total habits/i)).toBeInTheDocument();
+        
+        // Should show completion stats
+        expect(screen.getByTestId('completion-rate')).toBeInTheDocument();
+        expect(screen.getByTestId('current-streaks')).toBeInTheDocument();
+        expect(screen.getByTestId('achievements-count')).toBeInTheDocument();
+      });
+    });
+
+    it('shows today\'s progress correctly', async () => {
+      // Arrange
+      const today = new Date();
+      const mockHabits = sampleHabits.slice(0, 3);
+      const todayEntries = mockHabits.map((habit, index) => ({
+        id: `entry-today-${index}`,
+        habitId: habit.id,
+        date: today,
+        value: habit.targetValue,
+        completed: index < 2, // First 2 completed, last one not
+        createdAt: today
+      }));
+      
+      mockStorageService.prototype.getHabits.mockResolvedValue(mockHabits);
+      mockStorageService.prototype.getHabitEntries.mockResolvedValue(todayEntries);
+      mockStorageService.prototype.getAchievements.mockResolvedValue([]);
+
+      // Act
+      render(<Dashboard />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('today-progress')).toBeInTheDocument();
+        
+        // Should show 2 of 3 completed (66.7%)
+        expect(screen.getByText('2')).toBeInTheDocument();
+        expect(screen.getByText('3')).toBeInTheDocument();
+        expect(screen.getByText(/66\.7%/)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Dashboard Charts', () => {
+    it('loads and displays weekly progress chart', async () => {
+      // Arrange
+      const mockHabits = sampleHabits.slice(0, 2);
+      const mockEntries = generateSampleEntries(mockHabits, 7); // Last 7 days
+      
+      mockStorageService.prototype.getHabits.mockResolvedValue(mockHabits);
+      mockStorageService.prototype.getHabitEntries.mockResolvedValue(mockEntries);
+      mockStorageService.prototype.getAchievements.mockResolvedValue([]);
+
+      // Act
+      render(<Dashboard />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('weekly-chart')).toBeInTheDocument();
+        expect(screen.getByText(/weekly progress/i)).toBeInTheDocument();
+      });
+    });
+
+    it('displays habit completion trends', async () => {
+      // Arrange
+      const mockHabits = sampleHabits.slice(0, 3);
+      const mockEntries = generateSampleEntries(mockHabits, 30); // Last 30 days
+      
+      mockStorageService.prototype.getHabits.mockResolvedValue(mockHabits);
+      mockStorageService.prototype.getHabitEntries.mockResolvedValue(mockEntries);
+      mockStorageService.prototype.getAchievements.mockResolvedValue([]);
+
+      // Act
+      render(<Dashboard />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('progress-chart')).toBeInTheDocument();
+        expect(screen.getByText(/completion trends/i)).toBeInTheDocument();
+      });
+    });
+
+    it('handles chart data gracefully when no entries exist', async () => {
+      // Arrange
+      const mockHabits = sampleHabits.slice(0, 2);
+      
+      mockStorageService.prototype.getHabits.mockResolvedValue(mockHabits);
+      mockStorageService.prototype.getHabitEntries.mockResolvedValue([]);
+      mockStorageService.prototype.getAchievements.mockResolvedValue([]);
+
+      // Act
+      render(<Dashboard />);
+
+      // Assert
+      await waitFor(() => {
+        // Charts should still render but show empty state
+        expect(screen.getByTestId('weekly-chart')).toBeInTheDocument();
+        expect(screen.getByText(/no data available/i)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Dashboard Achievements', () => {
+    it('loads and displays achievements', async () => {
+      // Arrange
+      const mockHabits = sampleHabits.slice(0, 2);
+      const mockAchievements = [
+        {
+          id: 'achievement-1',
+          type: 'streak',
+          title: '7-Day Streak',
+          description: 'Complete a habit for 7 days in a row',
+          unlockedAt: new Date(),
+          habitId: mockHabits[0].id
+        }
+      ];
+      
+      mockStorageService.prototype.getHabits.mockResolvedValue(mockHabits);
+      mockStorageService.prototype.getHabitEntries.mockResolvedValue([]);
+      mockStorageService.prototype.getAchievements.mockResolvedValue(mockAchievements);
+
+      // Act
+      render(<Dashboard />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('achievements-section')).toBeInTheDocument();
+        expect(screen.getByText('7-Day Streak')).toBeInTheDocument();
+        expect(screen.getByText(/complete a habit for 7 days/i)).toBeInTheDocument();
+      });
+    });
+
+    it('shows recent achievements prominently', async () => {
+      // Arrange
+      const recentAchievement = {
+        id: 'achievement-recent',
+        type: 'milestone',
+        title: 'First Week',
+        description: 'Complete your first week of habit tracking',
+        unlockedAt: new Date(),
+        habitId: 'habit-1'
+      };
+      
+      mockStorageService.prototype.getHabits.mockResolvedValue(sampleHabits.slice(0, 1));
+      mockStorageService.prototype.getHabitEntries.mockResolvedValue([]);
+      mockStorageService.prototype.getAchievements.mockResolvedValue([recentAchievement]);
+
+      // Act
+      render(<Dashboard />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('recent-achievements')).toBeInTheDocument();
+        expect(screen.getByTestId('achievement-badge')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Dashboard Interactions', () => {
+    it('allows completing habits directly from dashboard', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const mockHabits = sampleHabits.slice(0, 2);
+      
+      mockStorageService.prototype.getHabits.mockResolvedValue(mockHabits);
+      mockStorageService.prototype.getHabitEntries.mockResolvedValue([]);
+      mockStorageService.prototype.getAchievements.mockResolvedValue([]);
+      mockStorageService.prototype.addHabitEntry = jest.fn().mockResolvedValue({
+        id: 'new-entry',
+        habitId: mockHabits[0].id,
+        date: new Date(),
+        value: mockHabits[0].targetValue,
+        completed: true,
+        createdAt: new Date()
+      });
+
+      // Act
+      render(<Dashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('habit-list')).toBeInTheDocument();
+      });
+
+      // Click complete button for first habit
+      const completeButtons = screen.getAllByRole('button', { name: /complete/i });
+      await user.click(completeButtons[0]);
+
+      // Assert
+      expect(mockStorageService.prototype.addHabitEntry).toHaveBeenCalledWith(
+        expect.objectContaining({
+          habitId: mockHabits[0].id,
+          completed: true,
+          value: mockHabits[0].targetValue
+        })
+      );
+    });
+
+    it('navigates to habit creation when add habit is clicked', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      
+      mockStorageService.prototype.getHabits.mockResolvedValue([]);
+      mockStorageService.prototype.getHabitEntries.mockResolvedValue([]);
+      mockStorageService.prototype.getAchievements.mockResolvedValue([]);
+
+      // Act
+      render(<Dashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('empty-dashboard')).toBeInTheDocument();
+      });
+
+      const addButton = screen.getByRole('button', { name: /create.*habit/i });
+      await user.click(addButton);
+
+      // Assert
+      // Would test navigation, but that's mocked in this test
+      expect(addButton).toHaveBeenClicked(); // This would be handled by the mock router
+    });
+
+    it('refreshes data when refresh action is triggered', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const mockHabits = sampleHabits.slice(0, 2);
+      
+      mockStorageService.prototype.getHabits.mockResolvedValue(mockHabits);
+      mockStorageService.prototype.getHabitEntries.mockResolvedValue([]);
+      mockStorageService.prototype.getAchievements.mockResolvedValue([]);
+
+      // Act
+      render(<Dashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('habit-list')).toBeInTheDocument();
+      });
+
+      // Trigger refresh (could be pull-to-refresh or refresh button)
+      const refreshButton = screen.getByRole('button', { name: /refresh/i });
+      await user.click(refreshButton);
+
+      // Assert
+      expect(mockStorageService.prototype.getHabits).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('Dashboard Performance', () => {
+    it('loads dashboard within acceptable time limits', async () => {
+      // Arrange
+      const startTime = performance.now();
+      const mockHabits = sampleHabits; // All sample habits
+      const mockEntries = generateSampleEntries(mockHabits, 90); // 90 days of data
+      
+      mockStorageService.prototype.getHabits.mockResolvedValue(mockHabits);
+      mockStorageService.prototype.getHabitEntries.mockResolvedValue(mockEntries);
+      mockStorageService.prototype.getAchievements.mockResolvedValue([]);
+
+      // Act
+      render(<Dashboard />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('habit-list')).toBeInTheDocument();
+      }, { timeout: 3000 }); // Should load within 3 seconds
+
+      const loadTime = performance.now() - startTime;
+      expect(loadTime).toBeLessThan(3000); // Performance assertion
+    });
+
+    it('handles large datasets efficiently', async () => {
+      // Arrange
+      const largeHabitSet = Array(50).fill(null).map((_, index) => ({
+        ...sampleHabits[0],
+        id: `habit-${index}`,
+        name: `Habit ${index + 1}`
+      }));
+      
+      mockStorageService.prototype.getHabits.mockResolvedValue(largeHabitSet);
+      mockStorageService.prototype.getHabitEntries.mockResolvedValue([]);
+      mockStorageService.prototype.getAchievements.mockResolvedValue([]);
+
+      // Act
+      render(<Dashboard />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('habit-list')).toBeInTheDocument();
+        // Should handle large datasets without performance issues
+        expect(screen.getAllByTestId('habit-card')).toHaveLength(largeHabitSet.length);
+      });
+    });
+  });
+});

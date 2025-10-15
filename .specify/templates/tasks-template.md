@@ -17,10 +17,10 @@ description: "Task list template for feature implementation"
 - Include exact file paths in descriptions
 
 ## Path Conventions
-- **Single project**: `src/`, `tests/` at repository root
-- **Web app**: `backend/src/`, `frontend/src/`
-- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
-- Paths shown below assume single project - adjust based on plan.md structure
+- **Static site**: `src/`, `content/`, `build/`, `tests/` at repository root
+- **Static site with CMS**: `src/`, `content/`, `cms/`, `build/`  
+- **Documentation site**: `docs/`, `src/`, `build/`
+- Paths shown below assume static site - adjust based on plan.md structure
 
 <!-- 
   ============================================================================
@@ -59,12 +59,12 @@ description: "Task list template for feature implementation"
 
 Examples of foundational tasks (adjust based on your project):
 
-- [ ] T004 Setup database schema and migrations framework
-- [ ] T005 [P] Implement authentication/authorization framework
-- [ ] T006 [P] Setup API routing and middleware structure
-- [ ] T007 Create base models/entities that all stories depend on
-- [ ] T008 Configure error handling and logging infrastructure
-- [ ] T009 Setup environment configuration management
+- [ ] T004 Setup build system and template processing pipeline
+- [ ] T005 [P] Configure asset optimization (CSS, JS, images)
+- [ ] T006 [P] Implement base template structure and inheritance
+- [ ] T007 Create content processing and validation framework
+- [ ] T008 Setup development server with live reload
+- [ ] T009 Configure deployment pipeline for static hosting
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
