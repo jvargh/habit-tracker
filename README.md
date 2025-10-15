@@ -2,6 +2,8 @@
 
 A modern, responsive habit tracking application built with Next.js 15, TypeScript, and Tailwind CSS. Track your daily habits, visualize progress, and build better routines with an intuitive interface.
 
+![Demo](demo.gif)
+
 ## ✨ Features
 
 - 📊 **Comprehensive Habit Management**: Create, edit, delete, and track habits
