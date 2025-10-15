@@ -2,7 +2,15 @@
 
 A modern, responsive habit tracking application built with Next.js 15, TypeScript, and Tailwind CSS. Track your daily habits, visualize progress, and build better routines with an intuitive interface.
 
-**Developed using [GitHub SpecKit](https://github.com/github/spec-kit)** - An AI-powered development framework that transforms natural language specifications into fully functional applications through systematic implementation phases.
+## 🔧 Built with SpecKit
+
+This project was developed using **[GitHub SpecKit](https://github.com/github/spec-kit)**, an innovative AI-powered development framework that revolutionizes how applications are built from specifications.
+
+### What is SpecKit?
+
+SpecKit transforms natural language requirements and specifications into fully functional, production-ready applications through a systematic, phase-based approach. Instead of writing code from scratch, developers can describe what they want to build, and SpecKit handles the implementation details.
+
+![Demo](habit-tracker-demo.gif)
 
 ## ✨ Features
 
@@ -26,21 +34,22 @@ A modern, responsive habit tracking application built with Next.js 15, TypeScrip
 ### Installation
 
 1. **Navigate to the project directory**:
+
    ```bash
    cd habit-tracker
    ```
-
 2. **Install dependencies**:
+
    ```bash
    npm install
    ```
-
 3. **Start the development server**:
+
    ```bash
    npm run dev
    ```
-
 4. **Open your browser** and navigate to:
+
    ```
    http://localhost:3000
    ```
@@ -49,25 +58,20 @@ That's it! The app will load with sample data so you can start exploring immedia
 
 ## 📋 Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Build production-ready application |
-| `npm start` | Start production server (requires build first) |
-| `npm test` | Run test suite |
-| `npm run test:watch` | Run tests in watch mode |
-| `npm run lint` | Check code quality with ESLint |
-| `npm run type-check` | Run TypeScript type checking |
-
-## 🔧 Built with SpecKit
-
-This project was developed using **[GitHub SpecKit](https://github.com/github/spec-kit)**, an innovative AI-powered development framework that revolutionizes how applications are built from specifications.
-
-### What is SpecKit?
-SpecKit transforms natural language requirements and specifications into fully functional, production-ready applications through a systematic, phase-based approach. Instead of writing code from scratch, developers can describe what they want to build, and SpecKit handles the implementation details.
+| Command                | Description                                    |
+| ---------------------- | ---------------------------------------------- |
+| `npm run dev`        | Start development server with hot reload       |
+| `npm run build`      | Build production-ready application             |
+| `npm start`          | Start production server (requires build first) |
+| `npm test`           | Run test suite                                 |
+| `npm run test:watch` | Run tests in watch mode                        |
+| `npm run lint`       | Check code quality with ESLint                 |
+| `npm run type-check` | Run TypeScript type checking                   |
 
 ### Development Process
+
 This habit tracker was built through SpecKit's structured phases:
+
 - **📋 Specification Analysis**: Breaking down requirements into actionable tasks
 - **🏗️ Architecture Planning**: Designing component structure and data flow
 - **⚡ Rapid Implementation**: Generating components, tests, and functionality
@@ -75,6 +79,7 @@ This habit tracker was built through SpecKit's structured phases:
 - **✨ Feature Integration**: Seamless integration of complex features like edit modals
 
 ### Why SpecKit?
+
 - **Speed**: Rapid development from concept to working application
 - **Quality**: Built-in best practices and comprehensive testing
 - **Consistency**: Standardized code structure and patterns
@@ -85,17 +90,20 @@ The result is this fully-featured habit tracker with 43/43 passing tests, comple
 ## 🎮 How to Use
 
 ### Getting Started
+
 1. **Load Sample Data**: Click "Load Sample Habits" on first visit or "Reset to Sample Data"
 2. **View Habits**: Browse your habit cards in grid or list layout
 3. **Track Progress**: Click "Complete" buttons to log habit completions
 
 ### Managing Habits
+
 - **Edit Habit**: Click the "Edit" button to open a modal and modify name, category, target, etc.
 - **Delete Habit**: Click "Delete" and confirm to remove a habit
 - **Complete Habit**: Click "Complete" to log today's completion with target value
 - **Reset Data**: Use "Reset to Sample Data" to restore example habits
 
 ### Features Overview
+
 - **Search**: Type in the search box to filter habits by name
 - **Sort**: Use the dropdown to sort by name, completion rate, or streak
 - **Layout**: Toggle between grid and list views with the layout buttons
@@ -151,6 +159,7 @@ npm test -- --coverage
 ```
 
 **Current Test Results**: ✅ 43/43 tests passing
+
 - Component rendering and props
 - User interactions (clicks, form inputs)
 - Habit statistics calculations
@@ -170,6 +179,7 @@ npm test -- --coverage
 ### Common Issues
 
 **Server won't start**
+
 ```bash
 # Kill existing Node processes (Windows)
 taskkill /f /im node.exe
@@ -182,6 +192,7 @@ npm run dev
 ```
 
 **TypeScript errors**
+
 ```bash
 # Run type checking
 npm run type-check
@@ -192,6 +203,7 @@ npm run dev
 ```
 
 **Tests failing**
+
 ```bash
 # Run specific test
 npm test HabitCard.test.tsx
@@ -203,24 +215,27 @@ npm test -- --updateSnapshot
 ## 🚀 Deployment
 
 ### Build for Production
+
 ```bash
 npm run build
 npm start
 ```
 
 ### Deploy to Vercel (Recommended)
+
 1. Push code to GitHub
 2. Connect repository to [Vercel](https://vercel.com)
 3. Automatic deployments on every push
 
 ### Other Platforms
+
 - **Netlify**: Build command `npm run build`, publish directory `out`
 - **GitHub Pages**: Enable static export in `next.config.js`
 
 ## 📈 Roadmap
 
 - [ ] **Progress Charts**: Visual habit completion trends (T027)
-- [ ] **Weekly Views**: Calendar-style habit tracking (T028)  
+- [ ] **Weekly Views**: Calendar-style habit tracking (T028)
 - [ ] **Achievement Badges**: Milestone rewards system (T029)
 - [ ] **Data Export**: CSV/JSON export functionality
 - [ ] **Habit Reminders**: Browser notification system
